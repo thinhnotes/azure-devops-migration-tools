@@ -26,6 +26,7 @@ namespace MigrationTools
             context.AddSingleton<WorkItemDelete>();
             context.AddSingleton<WorkItemUpdate>();
             context.AddSingleton<WorkItemUpdateAreasAsTagsContext>();
+            context.AddSingleton<WorkItemQueryMigrationContext>();
 
         }
     }
