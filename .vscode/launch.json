@@ -16,7 +16,7 @@
             "type": "clr",
             "request": "launch",
             "preLaunchTask": "build full framework",
-            "program": "${workspaceFolder}/src/MigrationTools.ConsoleFull/bin/Debug/net472/migration.exe",
+            "program": "${workspaceFolder}/src/MigrationTools.ConsoleFull/bin/Debug/net472/devopsmigration.exe",
             "args": ["execute", "-c", "configuration.json"],
             "cwd": "${workspaceFolder}/src/MigrationTools.ConsoleFull/bin/Debug/net472/",
             "console": "externalTerminal",

@@ -509,29 +509,29 @@ namespace VstsSyncMigrator.Engine
             IRequirementTestSuite targetSuiteChild;
             try
             {
-                string token = Engine.Target.Config.AsTeamProjectConfig().PersonalAccessToken;
-                string project = Engine.Target.Config.AsTeamProjectConfig().Project;
-                Uri collectionUri = Engine.Target.Config.AsTeamProjectConfig().Collection;
-                VssConnection connection = new VssConnection(collectionUri, new VssClientCredentials());
-                if (!string.IsNullOrEmpty(token)) connection = new VssConnection(collectionUri, new VssBasicCredential(string.Empty, token));
-                TestPlanHttpClient testPlanHttpClient = connection.GetClient<TestPlanHttpClient>();
-                WorkItemData sourceSuite = Engine.Source.WorkItems.GetWorkItem(source.Parent.Id);
-                WorkItemData targetSuite = Engine.Target.WorkItems.FindReflectedWorkItemByReflectedWorkItemId(sourceSuite);
-                WorkItemData sourcePlan = Engine.Source.WorkItems.GetWorkItem(source.Plan.Id);
-                WorkItemData targetPlan = Engine.Target.WorkItems.FindReflectedWorkItemByReflectedWorkItemId(sourcePlan);
-                TestSuiteCreateParams testSuiteCreateParams = new TestSuiteCreateParams()
-                {
-                    RequirementId = int.Parse(requirement.Id),
-                    SuiteType = Microsoft.VisualStudio.Services.TestManagement.TestPlanning.WebApi.TestSuiteType.RequirementTestSuite,
-                    ParentSuite = new TestSuiteReference()
-                    {
-                        Id = int.Parse(targetSuite.Id)
-                    }
-                };
-                Microsoft.VisualStudio.Services.TestManagement.TestPlanning.WebApi.TestSuite suite = testPlanHttpClient.CreateTestSuiteAsync(testSuiteCreateParams, project, int.Parse(targetPlan.Id)).Result;
-                targetSuiteChild = (IRequirementTestSuite)_targetTestStore.Project.TestSuites.Find(suite.Id);
+                // string token = Engine.Target.Config.AsTeamProjectConfig().PersonalAccessToken;
+                // string project = Engine.Target.Config.AsTeamProjectConfig().Project;
+                // Uri collectionUri = Engine.Target.Config.AsTeamProjectConfig().Collection;
+                // VssConnection connection = new VssConnection(collectionUri, new VssClientCredentials());
+                // if (!string.IsNullOrEmpty(token)) connection = new VssConnection(collectionUri, new VssBasicCredential(string.Empty, token));
+                // TestPlanHttpClient testPlanHttpClient = connection.GetClient<TestPlanHttpClient>();
+                // WorkItemData sourceSuite = Engine.Source.WorkItems.GetWorkItem(source.Parent.Id);
+                // WorkItemData targetSuite = Engine.Target.WorkItems.FindReflectedWorkItemByReflectedWorkItemId(sourceSuite);
+                // WorkItemData sourcePlan = Engine.Source.WorkItems.GetWorkItem(source.Plan.Id);
+                // WorkItemData targetPlan = Engine.Target.WorkItems.FindReflectedWorkItemByReflectedWorkItemId(sourcePlan);
+                // TestSuiteCreateParams testSuiteCreateParams = new TestSuiteCreateParams()
+                // {
+                //     RequirementId = int.Parse(requirement.Id),
+                //     SuiteType = Microsoft.VisualStudio.Services.TestManagement.TestPlanning.WebApi.TestSuiteType.RequirementTestSuite,
+                //     ParentSuite = new TestSuiteReference()
+                //     {
+                //         Id = int.Parse(targetSuite.Id)
+                //     }
+                // };
+                // Microsoft.VisualStudio.Services.TestManagement.TestPlanning.WebApi.TestSuite suite = testPlanHttpClient.CreateTestSuiteAsync(testSuiteCreateParams, project, int.Parse(targetPlan.Id)).Result;
+                // targetSuiteChild = (IRequirementTestSuite)_targetTestStore.Project.TestSuites.Find(suite.Id);
                 //Replaced soap api with rest api because work item type Bug is no longer part of the Microsoft.Requirement.Category
-                //targetSuiteChild = _targetTestStore.Project.TestSuites.CreateRequirement(requirement.ToWorkItem());
+                targetSuiteChild = _targetTestStore.Project.TestSuites.CreateRequirement(requirement.ToWorkItem());
             }
             catch (TestManagementValidationException ex)
             {
