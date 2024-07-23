@@ -20,6 +20,7 @@ namespace MigrationTools.Enrichers
     public class TfsEmbededImagesEnricher : EmbededImagesRepairEnricherBase
     {
         private const string RegexPatternForImageUrl = "(?<=<img.*?src=\")[^\"]*";
+        private const string RegexPatternForStepImageUrl = "(IMG.*?src=\")[^\"]*";
         private const string RegexPatternForImageFileName = "(?<=FileName=)[^=]*";
         private const string TargetDummyWorkItemTitle = "***** DELETE THIS - Migration Tool Generated Dummy Work Item For TfsEmbededImagesEnricher *****";
 
@@ -86,7 +87,15 @@ namespace MigrationTools.Enrichers
 
                 try
                 {
-                    MatchCollection matches = Regex.Matches((string)field.Value, RegexPatternForImageUrl);
+                    MatchCollection matches;
+                    if (field.Name == "Steps")
+                    {
+                        matches = Regex.Matches((string)field.Value, RegexPatternForStepImageUrl);
+                    }
+                    else
+                    {
+                        matches = Regex.Matches((string)field.Value, RegexPatternForImageUrl);
+                    }
                     foreach (Match match in matches)
                     {
                         if (!match.Value.ToLower().Contains(oldTfsurl.ToLower()) && !match.Value.ToLower().Contains(oldTfsurlOppositeSchema.ToLower()))
@@ -100,7 +109,7 @@ namespace MigrationTools.Enrichers
                         else
                         {
                             // go upload and get newImageLink
-                            newImageLink = this.UploadedAndRetrieveAttachmentLinkUrl(match.Value, field.Name, wi, sourcePersonalAccessToken);
+                            newImageLink = this.UploadedAndRetrieveAttachmentLinkUrl(match.Value.Replace("IMG src=\"", ""), field.Name, wi, sourcePersonalAccessToken);
 
                             // if unable to store/upload the link, should we cache that result? so the next revision will either just ignore it or try again
                             //   for now, i think the best option is to set it to null so we don't retry an upload, with the assumption being that the next
@@ -261,7 +270,7 @@ namespace MigrationTools.Enrichers
                 Log.LogDebug("EmbededImagesRepairEnricher: Dummy workitem {id} created on the target collection.", _targetDummyWorkItem.Id);
                 //_targetProject.Store.DestroyWorkItems(new List<int> { _targetDummyWorkItem.Id });
             }
-            _DummyWorkItemCount ++;
+            _DummyWorkItemCount++;
             return _targetDummyWorkItem;
         }
     }
