@@ -148,7 +148,7 @@ jobs:
       - run: dotnet tool install --global dotnet-sonarscanner
       - run: dotnet sonarscanner begin 
               /o:"nkdagility" 
-              /k:"vsts-sync-migrator:master" 
+              /k:"vsts-sync-migrator-thinhnotes:master" 
               /d:sonar.host.url="https://sonarcloud.io" 
               /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
       - run: dotnet build MigrationTools.sln /p:Version=${{ env.GitVersion_SemVer }} /p:FileVersion=${{ env.GitVersion_AssemblySemVer }} /p:InformationalVersion=${{ env.GitVersion_InformationalVersion }} /p:GitVersionTag=${{ env.GitVersion_PreReleaseLabel }}
