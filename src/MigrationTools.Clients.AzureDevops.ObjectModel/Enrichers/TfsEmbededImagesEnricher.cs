@@ -19,7 +19,7 @@ namespace MigrationTools.Enrichers
 {
     public class TfsEmbededImagesEnricher : EmbededImagesRepairEnricherBase
     {
-        private const string RegexPatternForImageUrl = "(?<=<img.*?src=\")[^\"]*";
+        private const string RegexPatternForImageUrl = "(?<=<(img|IMG).*?src=\")[^\"]*";
         private const string RegexPatternForStepImageUrl = "(IMG.*?src=\")[^\"]*";
         private const string RegexPatternForImageFileName = "(?<=FileName=)[^=]*";
         private const string TargetDummyWorkItemTitle = "***** DELETE THIS - Migration Tool Generated Dummy Work Item For TfsEmbededImagesEnricher *****";
@@ -88,14 +88,12 @@ namespace MigrationTools.Enrichers
                 try
                 {
                     MatchCollection matches;
+                    string value = (string)field.Value;
                     if (field.Name == "Steps")
                     {
-                        matches = Regex.Matches((string)field.Value, RegexPatternForStepImageUrl);
+                        value = System.Net.WebUtility.HtmlDecode(field.Value.ToString());
                     }
-                    else
-                    {
-                        matches = Regex.Matches((string)field.Value, RegexPatternForImageUrl);
-                    }
+                    matches = Regex.Matches(value, RegexPatternForImageUrl);
                     foreach (Match match in matches)
                     {
                         if (!match.Value.ToLower().Contains(oldTfsurl.ToLower()) && !match.Value.ToLower().Contains(oldTfsurlOppositeSchema.ToLower()))
@@ -120,14 +118,7 @@ namespace MigrationTools.Enrichers
                         if (!string.IsNullOrWhiteSpace(newImageLink))
                         {
                             // the match.Value was either just uploaded or uploaded most likely because of a previous revision. we can replace it
-                            if (field.Name == "Steps")
-                            {
-                                field.Value = field.Value.ToString().Replace(match.Value, "IMG src=\"" + newImageLink);
-                            }
-                            else
-                            {
-                                field.Value = field.Value.ToString().Replace(match.Value, newImageLink);
-                            }
+                            field.Value = field.Value.ToString().Replace(match.Value, newImageLink);
                         }
                     }
                 }
