@@ -120,7 +120,14 @@ namespace MigrationTools.Enrichers
                         if (!string.IsNullOrWhiteSpace(newImageLink))
                         {
                             // the match.Value was either just uploaded or uploaded most likely because of a previous revision. we can replace it
-                            field.Value = field.Value.ToString().Replace(match.Value, newImageLink);
+                            if (field.Name == "Steps")
+                            {
+                                field.Value = field.Value.ToString().Replace(match.Value, "IMG src=\"" + newImageLink);
+                            }
+                            else
+                            {
+                                field.Value = field.Value.ToString().Replace(match.Value, newImageLink);
+                            }
                         }
                     }
                 }
