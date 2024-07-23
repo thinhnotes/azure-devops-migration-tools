@@ -22,6 +22,7 @@ namespace MigrationTools.Enrichers
         private const string RegexPatternForImageUrl = "(?<=<(img|IMG).*?src=\")[^\"]*";
         private const string RegexPatternForStepImageUrl = "(IMG.*?src=\")[^\"]*";
         private const string RegexPatternForImageFileName = "(?<=FileName=)[^=]*";
+        private const string RegexPatternForStepImageFileName = "(image[-\\w+\\d]+).png";
         private const string TargetDummyWorkItemTitle = "***** DELETE THIS - Migration Tool Generated Dummy Work Item For TfsEmbededImagesEnricher *****";
 
         private readonly Project _targetProject;
@@ -89,7 +90,8 @@ namespace MigrationTools.Enrichers
                 {
                     MatchCollection matches;
                     string value = (string)field.Value;
-                    if (field.Name == "Steps")
+                    var hasEncode = System.Net.WebUtility.HtmlDecode(field.Value.ToString()) != field.Value.ToString();
+                    if (hasEncode)
                     {
                         value = System.Net.WebUtility.HtmlDecode(field.Value.ToString());
                     }
@@ -107,7 +109,7 @@ namespace MigrationTools.Enrichers
                         else
                         {
                             // go upload and get newImageLink
-                            newImageLink = this.UploadedAndRetrieveAttachmentLinkUrl(match.Value.Replace("IMG src=\"", ""), field.Name, wi, sourcePersonalAccessToken);
+                            newImageLink = this.UploadedAndRetrieveAttachmentLinkUrl(match.Value, field.Name, wi, sourcePersonalAccessToken);
 
                             // if unable to store/upload the link, should we cache that result? so the next revision will either just ignore it or try again
                             //   for now, i think the best option is to set it to null so we don't retry an upload, with the assumption being that the next
@@ -118,7 +120,14 @@ namespace MigrationTools.Enrichers
                         if (!string.IsNullOrWhiteSpace(newImageLink))
                         {
                             // the match.Value was either just uploaded or uploaded most likely because of a previous revision. we can replace it
-                            field.Value = field.Value.ToString().Replace(match.Value, newImageLink);
+                            if (hasEncode)
+                            {
+                                field.Value = field.Value.ToString().Replace(System.Net.WebUtility.HtmlEncode(match.Value), System.Net.WebUtility.HtmlEncode(newImageLink));
+                            }
+                            else
+                            {
+                                field.Value = field.Value.ToString().Replace(match.Value, newImageLink);
+                            }
                         }
                     }
                 }
@@ -134,10 +143,20 @@ namespace MigrationTools.Enrichers
         {
             // save image locally and upload as attachment
             Match newFileNameMatch = Regex.Match(matchedSourceUri, RegexPatternForImageFileName, RegexOptions.IgnoreCase);
-            if (!newFileNameMatch.Success) return null;
+            var fileName = string.Empty;
+            if (!newFileNameMatch.Success)
+            {
+                var newFileName = Regex.Match(matchedSourceUri, RegexPatternForStepImageFileName, RegexOptions.IgnoreCase);
+                if (!newFileName.Success) return null;
+                fileName = newFileName.Groups[0]?.Value;
+            }
+            else
+            {
+                fileName = newFileNameMatch?.Value;
+            };
 
             Log.LogDebug("EmbededImagesRepairEnricher: field '{fieldName}' has match: {matchValue}", sourceFieldName, System.Net.WebUtility.HtmlDecode(matchedSourceUri));
-            string fullImageFilePath = Path.GetTempPath() + newFileNameMatch.Value;
+            string fullImageFilePath = Path.GetTempPath() + fileName;
 
             try
             {
